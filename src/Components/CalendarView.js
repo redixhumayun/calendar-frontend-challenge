@@ -9,7 +9,6 @@ export default class CalendarView extends Component {
         {
           appointmentCollection.map((appointments) => {
             return appointments.map((appointment, index) => {
-              console.log(appointment)
               return (
                 <div 
                 className="appointment"
@@ -18,9 +17,10 @@ export default class CalendarView extends Component {
                   width: appointment.width,
                   height: appointment.height,
                   marginLeft: appointment.marginLeft,
-                  marginTop: appointment.marginTop,
-                  backgroundColor: 'blue'
+                  marginTop: appointment.marginTop
                 }}>
+                  <text>Start Time: {appointment.start}</text>
+                  <text>End Time: {appointment.end}</text>
                 </div>
               )
             })
