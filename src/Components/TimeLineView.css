@@ -1,0 +1,10 @@
+.timelineview {
+  display: flex;
+  flex-direction: column;
+  padding: 10px
+}
+
+.time {
+  margin-bottom: 60px;
+  font-size: 1px
+}

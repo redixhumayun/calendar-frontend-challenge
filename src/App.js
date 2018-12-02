@@ -1,27 +1,17 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Calendar from './Containers/Calendar'
+
+const appointmentData = [
+  { start: '09:45', end: '11:15' },
+  { start: '18:10', end: '19:00' },
+  { start: '18:30', end: '19:30' },
+  { start: '19:05', end: '20:05' }
+]
 
 class App extends Component {
   render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
+    return <Calendar appointments={appointmentData} />
   }
 }
 
