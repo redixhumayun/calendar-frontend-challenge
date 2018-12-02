@@ -1,9 +1,8 @@
-import React, { Component } from 'react'
+import React from 'react'
 import './CalendarView.css'
 
-export default class CalendarView extends Component {
-  render() {
-    const { appointmentCollection } = this.props
+export default function CalendarView(props) {
+  const { appointmentCollection } = props
     return (
       <div className="calendar">
         {
@@ -28,5 +27,4 @@ export default class CalendarView extends Component {
         }
       </div>
     )
-  }
 }

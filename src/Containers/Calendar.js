@@ -5,14 +5,19 @@ import './Calendar.css'
 
 export default class Calendar extends Component {
   render() {
-    const { appointments } = this.props
-    const result = this.computeTimeClashes(appointments)
-    const result2 = this.createSeparateArrays(result)
-    const result3 = this.calculateDimensions(result2)
+    const { appointments, start, duration } = this.props
+
+    const computeAppointmentsPipe = pipe(this.computeTimeClashes, this.createSeparateArrays, this.calculateDimensions)
+    const computeTimeLinePipe = pipe(this.createTimeArray, this.convertTo12HourFormat)
+
+    //  Passing in the this namespace to allow for binding to correct context
+    const appointmentCollection = computeAppointmentsPipe(appointments, this) 
+    const timeLineCollection = computeTimeLinePipe({start, duration}, this)
+    
     return (
       <div className="container">
-        <TimeLineView />
-        <CalendarView appointmentCollection={result3} />
+        <TimeLineView timeLineCollection={timeLineCollection} />
+        <CalendarView appointmentCollection={appointmentCollection} />
       </div>
     )
   }
@@ -29,44 +34,44 @@ export default class Calendar extends Component {
     const appointmentsCopy = appointments.map((appointment) => {
       return Object.assign({}, {...appointment})
     })
-
     //  Check if the current appointment starts before the previous one ends
     //  Create / update the clashes property accordingly
     for(let i = 1; i < appointmentsCopy.length; i++) {
       if (this.convertToMinsElapsed(appointmentsCopy[i].start) < this.convertToMinsElapsed(appointmentsCopy[i-1].end) ) {
         appointmentsCopy[i].clashes = 1
         appointmentsCopy[i-1].clashes = 1
-      } else if(!appointmentsCopy[i].clashes && !appointments[i-1].clashes) {
-        appointmentsCopy[i].clashes = 0
-        appointmentsCopy[i-1].clashes = 0
       }
     }
-    return appointmentsCopy
+    return appointmentsCopy.map(appointment => {
+      if (!appointment.clashes) {
+        appointment.clashes = 0
+      }
+      return appointment
+    })
   }
 
   /**
-   * This function will separate the appointments array of objects into 
-   * multiple arrays of continuous appointment blocks. Any appointments that all have a clash in a sequence are separated. 
-   * Standalone appointments with 0 clashes will be in a separate array
-   * @param {Array} appointments 
-   * @return {Array}
+   * Separates the appointments into separate arrays based on those that clash together and those that don't
+   * @param {Array} appointments
+   * @return {Array} 
    */
   createSeparateArrays(appointments) {
-    let collectionArr = []
-    let tempArr = []
-    appointments.map((appointment) => {
-      if(appointment.clashes === 0) {
-        collectionArr.push(tempArr)
-        tempArr = []
-        tempArr.push(appointment)
-        collectionArr.push(tempArr)
-        tempArr = []
-      } else if(appointment.clashes === 1) {
-        tempArr.push(appointment)
+    let collectionsArray = []
+    let tempArray = []
+    tempArray.push(appointments[0])
+    for(let i = 1; i < appointments.length; i++) {
+      if (this.convertToMinsElapsed(appointments[i].start) < this.convertToMinsElapsed(appointments[i-1].end)) {
+        tempArray.push(appointments[i])
+      } else {
+        collectionsArray.push(tempArray)
+        tempArray = []
+        tempArray.push(appointments[i])
       }
-    })
-    collectionArr.push(tempArr)
-    return collectionArr.filter(arr => arr.length > 0)
+    }
+    if (tempArray.length > 0) {
+      collectionsArray.push(tempArray)
+    }
+    return collectionsArray
   }
 
   /**
@@ -100,4 +105,50 @@ export default class Calendar extends Component {
       return minsElapsed
     }
   }
+
+  /**
+   * Function to create an array containing the different hours required for display
+   * @param {String} start 
+   * @param {String} duration
+   * @return {Array}
+   */
+  createTimeArray({start, duration}) {
+    let current = +start.substr(0, 2) - 1
+    let iterations = +duration.substr(0, 2)
+    return new Array(iterations + 1).fill(0).map(() => {
+      current += 1
+      return current < 10 ? `0${current}:00` : `${current}:00`
+    })
+  }
+
+  /**
+   * Function to convert all the times in an array from 24-hour to 12-hour format
+   * @param {Array} timeArray
+   * @return {Array} 
+   */
+  convertTo12HourFormat(timeArray) {
+    return timeArray.map((time) => {
+      time = time.toString().match(/^([01]\d|2[0-3])(:)([0-5]\d)/) || [time]
+      if (time.length > 1) {
+        time = time.slice(1);  // Remove full string match value
+        time[3] = +time[0] < 12 ? 'AM' : 'PM'; // Set AM/PM
+        time[0] = +time[0] % 12 || 12; // Adjust hours
+      }
+      return time.join('')
+    })
+  }
+}
+
+/**
+ * A utility function defined to allow easy piping of function and results 
+ * Need to hack the binding of this variable since its defined within a React class
+ * @param {Function} fns 
+ * @return {Array}
+ */
+const pipe = (...fns) => (result, that) => {
+  let list = [...fns]
+  while(list.length > 0) {
+    result = list.shift().apply(that, [result])
+  }
+  return result
 }
