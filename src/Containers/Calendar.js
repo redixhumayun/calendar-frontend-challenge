@@ -17,18 +17,17 @@ export default class Calendar extends Component {
   }
 
   computeTimeClashes() {
-    const timeArray = this.createTimeArray()
     const { appointments } = this.props   
-    console.log(appointments)
-    // const appointmentsCopy = Object.assign({}, {...appointments}) 
-    // for(let i = 1; i < appointmentsCopy.length; i++) {
-    //   if (this.convertToMins(appointmentsCopy[i].start) < this.convertToMins(appointmentsCopy[i-1].end) ) {
-    //     appointmentsCopy[i].clashes = 1
-    //     appointmentsCopy[i-1].clashes = 1
-    //   }
-    // }
-    // console.log(appointmentsCopy)
-    // return appointmentsCopy
+    const appointmentsCopy = appointments.map((appointment) => {
+      return Object.assign({}, {...appointment})
+    })
+    for(let i = 1; i < appointmentsCopy.length; i++) {
+      if (this.convertToMins(appointmentsCopy[i].start) < this.convertToMins(appointmentsCopy[i-1].end) ) {
+        appointmentsCopy[i].clashes = 1
+        appointmentsCopy[i-1].clashes = 1
+      }
+    }
+    return appointmentsCopy
   }
 
   convertToMins(time) {
@@ -71,14 +70,14 @@ export default class Calendar extends Component {
     }, [])
   }
 
-  createTimeArray() {
-    const start = '09:00'
-    const duration = '12:00'
-    let current = +start.substr(0, 2) - 1
-    let iterations = +duration.substr(0, 2)
-    return new Array(iterations + 1).fill(0).map(() => {
-      current += 1
-      return current < 10 ? `0${current}:00` : `${current}:00`
-    })
-  }
+  // createTimeArray() {
+  //   const start = '09:00'
+  //   const duration = '12:00'
+  //   let current = +start.substr(0, 2) - 1
+  //   let iterations = +duration.substr(0, 2)
+  //   return new Array(iterations + 1).fill(0).map(() => {
+  //     current += 1
+  //     return current < 10 ? `0${current}:00` : `${current}:00`
+  //   })
+  // }
 }
