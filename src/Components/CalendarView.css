@@ -4,3 +4,7 @@
   padding: 10px;
   background-color: #FF5500
 }
+
+.appointment {
+  position: absolute;
+}
