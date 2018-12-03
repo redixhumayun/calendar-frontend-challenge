@@ -1,4 +1,4 @@
-##Assumptions
+## Assumptions
 
 1. The appointments object will contain start and end times in 24-hour format. I made this assumption because it is much more likely that a server sends across time in a 24-hour format. 
 
@@ -59,3 +59,9 @@
 >I'm leaving it in there just as evidence of the approach.
 
 >Finally, there are three appointmentData objects in the ```App.js``` file. I used these as test data objects. 
+
+## Potential Improvements
+
+1. Include unit tests for the codebase. Snapshot testing would probably be best
+
+2. Move codebase to TypeScript. Might be overkill for a project with very few developers, but significantly improves refactoring time and developers also avoid silly bugs. 

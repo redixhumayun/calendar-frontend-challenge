@@ -69,6 +69,9 @@ export default class Calendar extends Component {
         tempArray.push(appointments[i])
       }
     }
+
+    //  If any remaining appointments are left in the tempArray, push it into collectionsArray
+    //  Solves edge case where last appointment clashes
     if (tempArray.length > 0) {
       collectionsArray.push(tempArray)
     }
