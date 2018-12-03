@@ -23,6 +23,7 @@ export default class Calendar extends Component {
   }
 
   /**
+   * TODO: This function is unnecessary. Leaving it in for reference
    * This function will check the start of every object with the end of the prior object
    * Will update a clashes property within each object. 
    * @param {Array} appointments
