@@ -57,3 +57,5 @@
 >To get them to line up exactly, I had to change the font-size to 1px, which renders the characters almost invisible. If you see dashes on the left side, that's what it is. 
 
 >I'm leaving it in there just as evidence of the approach.
+
+>Finally, there are three appointmentData objects in the ```App.js``` file. I used these as test data objects. 
