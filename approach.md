@@ -50,6 +50,8 @@
 
 ## Notes
 
+>There is a warning that appears in the browser regarding the tag ```<text>``` not being recognized in the browser. 
+
 >I've included a TimeLineView component which was supposed to show a timeline of hours between 9 am and 9 pm. 
 
 >Unfortunately, it doesn't line up with the height of the calendar div exactly because the text characters have their own height. 
@@ -65,3 +67,5 @@
 1. Include unit tests for the codebase. Snapshot testing would probably be best
 
 2. Move codebase to TypeScript. Might be overkill for a project with very few developers, but significantly improves refactoring time and developers also avoid silly bugs. 
+
+3. Error handling. Probably with a ```componentDidCatch``` lifecycle hook in the parent ```Calendar.js``` container. 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import './App.css';
 import Calendar from './Containers/Calendar'
+import ErrorBoundary from './Containers/ErrorBoundary'
 
 const appointmentData = [
   { start: '09:45', end: '11:15' },
@@ -29,7 +29,11 @@ const appointmentData3 = [
 
 class App extends Component {
   render() {
-    return <Calendar appointments={appointmentData} start={'09:00'} duration={'12:00'} />
+    return (
+      <ErrorBoundary>
+        <Calendar appointments={appointmentData} start={'09:00'} duration={'12:00'} />
+      </ErrorBoundary>
+    )
   }
 }
 

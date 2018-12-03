@@ -7,6 +7,10 @@ export default class Calendar extends Component {
   render() {
     const { appointments, start, duration } = this.props
 
+    if (!appointments || !start || !duration) {
+      throw new Error('Correct props not supplied!')
+    }
+
     const computeAppointmentsPipe = pipe(this.computeTimeClashes, this.createSeparateArrays, this.calculateDimensions)
     const computeTimeLinePipe = pipe(this.createTimeArray, this.convertTo12HourFormat)
 
