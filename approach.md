@@ -68,4 +68,4 @@
 
 2. Move codebase to TypeScript. Might be overkill for a project with very few developers, but significantly improves refactoring time and developers also avoid silly bugs. 
 
-3. Error handling. Probably with a ```componentDidCatch``` lifecycle hook in the parent ```Calendar.js``` container. 
+3. Improved error handling. Currently done with a ```componentDidCatch``` lifecycle hook around the ```Calendar.js``` container with a basic check to see if props are provided. 
