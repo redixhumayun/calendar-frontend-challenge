@@ -11,7 +11,7 @@ export default class Calendar extends Component {
       throw new Error('Correct props not supplied!')
     }
 
-    const computeAppointmentsPipe = pipe(this.computeTimeClashes, this.createSeparateArrays, this.calculateDimensions)
+    const computeAppointmentsPipe = pipe(this.createSeparateArrays, this.calculateDimensions, this.removeDuplicates, this.calculateLeftMargin)
     const computeTimeLinePipe = pipe(this.createTimeArray, this.convertTo12HourFormat)
 
     //  Passing in the this namespace to allow for binding to correct context
@@ -27,73 +27,140 @@ export default class Calendar extends Component {
   }
 
   /**
-   * TODO: This function is unnecessary. Leaving it in for reference
-   * This function will check the start of every object with the end of the prior object
-   * Will update a clashes property within each object. 
-   * @param {Array} appointments
+   * Function to separate appointments array into separate arrays based on clashes.
+   * Will return an array with duplicate appointments
+   * @param {Array} appointments 
    * @return {Array}
    */
-  computeTimeClashes(appointments) {
-    //  Create a deep copy of the array because mutating objects within the array will mutate
-    //  the reference to the original prop
-    const appointmentsCopy = appointments.map((appointment) => {
-      return Object.assign({}, {...appointment})
-    })
-    //  Check if the current appointment starts before the previous one ends
-    //  Create / update the clashes property accordingly
-    for(let i = 1; i < appointmentsCopy.length; i++) {
-      if (this.convertToMinsElapsed(appointmentsCopy[i].start) < this.convertToMinsElapsed(appointmentsCopy[i-1].end) ) {
-        appointmentsCopy[i].clashes = 1
-        appointmentsCopy[i-1].clashes = 1
+  createSeparateArrays(appointments) {
+    let collectionsArray = []
+    let tempArray = []
+    for(let i = 0; i < appointments.length; i++) {
+      tempArray.push(appointments[i])
+      const result = this.getClashes(appointments, i, tempArray)
+      collectionsArray.push(result)
+      tempArray = []
+    }
+    return collectionsArray
+  }
+
+  /**
+   * Function to calculate which appointments clash together. 
+   * Takes each appointment and checks which appointments it clashes with
+   * @param {Array} appointments 
+   * @param {Number} index 
+   * @param {Array} tempArray 
+   * @return {Array}
+   */
+  getClashes(appointments, index, tempArray) {
+    const appointmentsRef = appointments[index]
+    const appointmentsRefMinsElapsed = this.convertToMinsElapsed(appointmentsRef.end)
+    for(let i = index + 1; i < appointments.length; i++) {
+      if (this.convertToMinsElapsed(appointments[i].start) < appointmentsRefMinsElapsed) {
+        tempArray.push(appointments[i])
       }
     }
-    return appointmentsCopy.map(appointment => {
-      if (!appointment.clashes) {
-        appointment.clashes = 0
+    return tempArray
+  }
+
+  /**
+   * Function to iterate over collection of appointments and add metadata about dimensions and positioning of each div
+   * Will not calculate left margin. Left margin will be calculated after removing duplicates
+   * @param {Array} appointmentsCollection 
+   * @return {Array}
+   */
+  calculateDimensions(appointmentsCollection) {
+    appointmentsCollection.map((appointments) => {
+      return appointments.map((appointment, i) => {
+        //  Implies that this is a fresh block with no appointment having any clashes
+        if (i === 0 && !appointment.computed) {
+          this.computeEntireBlock(appointments)
+        } else if (i === 0 && appointment.computed) {
+        //  Implies that there is atleast one appointment that clashes. Calculate based on the clash
+          this.computeBasedOnFirstAppointment(appointments)
+        }
+        return appointment
+      })
+    })
+    return appointmentsCollection
+  }
+
+  /**
+   * Function called when the first appointment in an array has not been computed previously
+   * Implies that this new block has no clashes with any previous blocks
+   * @param {Array} appointments 
+   * @return {Array}
+   */
+  computeEntireBlock(appointments) {
+    return appointments.map((appointment) => {
+      if (!appointment.computed) {
+        appointment.width = 600 / appointments.length
+        appointment.height = this.convertToMinsElapsed(appointment.end) - this.convertToMinsElapsed(appointment.start)
+        appointment.marginTop = this.convertToMinsElapsed(appointment.start)
+        appointment.computed = true
+        return appointment
       }
       return appointment
     })
   }
 
   /**
-   * Separates the appointments into separate arrays based on those that clash together and those that don't
-   * @param {Array} appointments
-   * @return {Array} 
+   * Function called when the first appointment in an array has been previously computed
+   * Implies that this new block has clashes with a previous block
+   * @param {Array} appointments 
+   * @return {Array}
    */
-  createSeparateArrays(appointments) {
-    let collectionsArray = []
-    let tempArray = []
-    tempArray.push(appointments[0])
-    for(let i = 1; i < appointments.length; i++) {
-      if (this.convertToMinsElapsed(appointments[i].start) < this.convertToMinsElapsed(appointments[i-1].end)) {
-        tempArray.push(appointments[i])
-      } else {
-        collectionsArray.push(tempArray)
-        tempArray = []
-        tempArray.push(appointments[i])
+  computeBasedOnFirstAppointment(appointments) {
+    let blockWidth = 0 // use this variable to sum up witdth of all other appoinments in the block
+    for(let i = 0; i < appointments.length; i++) {
+      if (!appointments[i].computed) {
+        appointments[i].width = 600 - blockWidth
+        appointments[i].height = this.convertToMinsElapsed(appointments[i].end) - this.convertToMinsElapsed(appointments[i].start)
+        appointments[i].marginTop = this.convertToMinsElapsed(appointments[i].start)
+        appointments[i].computed = true
       }
+      blockWidth += appointments[i].width
     }
-
-    //  If any remaining appointments are left in the tempArray, push it into collectionsArray
-    //  Solves edge case where last appointment clashes
-    if (tempArray.length > 0) {
-      collectionsArray.push(tempArray)
-    }
-    return collectionsArray
+    return appointments
   }
 
   /**
-   * Function to iterate over collection of appointments and add metadata about dimensions and positioning of each div
-   * @param {Array} appointmentsCollection 
+   * Function to remove any of the duplicated appointments that were calculated by getClashes
+   * Removes duplicates by using a Set and checking against the Set for each new appointment object
+   * @param {Array} appointmentsCollection
    * @return {Array}
    */
-  calculateDimensions(appointmentsCollection) {
-    return appointmentsCollection.map(appointments => {
-      return appointments.map((appointment, index) => {
-        appointment.width = 600 / appointments.length
-        appointment.height = this.convertToMinsElapsed(appointment.end) - this.convertToMinsElapsed(appointment.start)
-        appointment.marginLeft = appointment.width * index
-        appointment.marginTop = this.convertToMinsElapsed(appointment.start)
+  removeDuplicates(appointmentsCollection) {
+    const duplicateSet = new Set()
+    return appointmentsCollection.map((appointments) => {
+      return appointments.map((appointment) => {
+        if (!duplicateSet.has(appointment)) {
+          duplicateSet.add(appointment)
+          return appointment
+        } else {
+          //  explicitly returning undefined to prevent any uncertainty around return value
+          return undefined
+        }
+      }).filter(appointment => appointment) //  remove all undefined values for appointments
+    }).filter(appointments => appointments.length > 0)  //  remove all appointments arrays that are empty now
+  }
+
+  /**
+   * Function to calculate the left margin for each appointment div
+   * Calculates left margin by using a blockWidth variable which is reset to 0 
+   * when it reaches 600 or a 600 width appointment is encountered
+   * @param {Array} appointmentsCollection
+   * @return {Array} 
+   */
+  calculateLeftMargin(appointmentsCollection) {
+    let blockWidth = 0
+    return appointmentsCollection.map((appointments) => {
+      return appointments.map((appointment) => {
+        if (blockWidth >= 600 || appointment.width === 600) { //  blockWidth needs to be reset if these conditions are met
+          blockWidth = 0
+        }
+        appointment.marginLeft = blockWidth
+        blockWidth += appointment.width 
         return appointment
       })
     })
