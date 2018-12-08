@@ -31,7 +31,7 @@ class App extends Component {
   render() {
     return (
       <ErrorBoundary>
-        <Calendar appointments={appointmentData3} start={'09:00'} duration={'12:00'} />
+        <Calendar appointments={appointmentData} start={'09:00'} duration={'12:00'} />
       </ErrorBoundary>
     )
   }
